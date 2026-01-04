@@ -16,7 +16,6 @@ exts = {"images": ['.jpg', '.png', '.webp'], "archives": ['.zip', '.gz', '.7z'],
 
 # Helper Functions
 def del_empty_dirs(dir: Path, dry_run=True) -> None:
-    #if dir.exists(): print("file exists")
     if dir.is_dir():
         if not any(dir.iterdir()):
             print(f"{dir.name} is empty, deleting.")
@@ -55,4 +54,4 @@ def clean(dir: str, dry_run=True) -> None:
     else: print(f"{dirpath.name} is not a directory.")
 
 if __name__ == "__main__":
-    clean(Path(sys.argv[1]), dry_run=False)
+    clean(Path(sys.argv[1]), dry_run=True)
