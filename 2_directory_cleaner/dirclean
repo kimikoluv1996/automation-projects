@@ -1,0 +1,67 @@
+#!/bin/python
+
+# Directory Cleaner
+"""
+    "Cleans up" a given directory by sorting files 
+    into subdirectories by extension, renaming files,
+    and deleting empty subdirs
+"""
+# Usage: main.py [--dry-run] /path/to/directory 
+
+# Imports
+from pathlib import Path
+import sys
+import argparse
+
+# Global Vars
+exts = {"images": ['.jpg', '.png', '.webp'], "archives": ['.zip', '.gz', '.7z'],
+        "misc": ['.pdf', '.nes', '.exe', '.txt']}
+
+
+parser = argparse.ArgumentParser(prog='dirclean', 
+                                 description='cleans a directory by sorting files into subdirectories by extension, renaming files, and deleting empty subdirs')
+parser.add_argument('directory')
+parser.add_argument('--dry-run', action='store_true')
+args = parser.parse_args()
+
+# Helper Functions
+def del_empty_dirs(dir: Path) -> None:
+    if dir.is_dir():
+        if not any(dir.iterdir()):
+            print(f"{dir.name} is empty, deleting.")
+            dir.rmdir()
+
+def cleaned_name(file_name: str) -> any:
+    """make a file name more readable by making everything lowercase 
+       and removing junk like spaces"""
+    file = Path(file_name)
+    new_name = file.parent / (file.stem.replace(" ", "-").lower() + file.suffix.lower())
+    return new_name
+
+def sort_f(file: Path, exts) -> Path:
+        for category, suffixes in exts.items():
+                if file.suffix.lower() in suffixes:
+                        return category
+        return None
+
+# Main Function                
+def clean(dir: Path, dry_run=True):
+        for file in Path(args.directory).iterdir():
+            if not file.is_file():
+                    del_empty_dirs(file)
+                    continue
+
+            new_name = cleaned_name(file.name)
+            category = sort_f(file, exts) 
+            
+            print(f"{file.name} -> {new_name} [{category}]")
+
+            if not dry_run:
+                    file = file.rename(file.with_name(new_name.name))
+                    if category:
+                            target = dir / category
+                            target.mkdir(exist_ok=True)
+                            file.replace(target / file.name)
+
+if __name__ == "__main__":
+    clean(Path(args.directory), args.dry_run)
